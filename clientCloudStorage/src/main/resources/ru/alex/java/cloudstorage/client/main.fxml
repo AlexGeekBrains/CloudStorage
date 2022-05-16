@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ru.alex.java.cloudstorage.client.CloudStorageController">
+    <Pane fx:id="regPanel" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+          prefHeight="337.0" prefWidth="520.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1">
+        <children>
+            <Label layoutX="121.0" layoutY="120.0" text="Логин"/>
+            <Label layoutX="117.0" layoutY="196.0" text="Пароль"/>
+            <TextField fx:id="authLogin" layoutX="178.0" layoutY="116.0" prefHeight="25.0" prefWidth="216.0"/>
+            <PasswordField fx:id="authPass" layoutX="178.0" layoutY="192.0" prefHeight="25.0" prefWidth="216.0"/>
+            <Button layoutX="208.0" layoutY="237.0" mnemonicParsing="false" onAction="#authBtn" text="Авторизоваться"/>
+            <Button layoutX="209.0" layoutY="284.0" mnemonicParsing="false" onAction="#regBtn" prefHeight="25.0"
+                    prefWidth="103.0" text="Регистрация"/>
+            <ImageView fitHeight="92.0" fitWidth="200.0" layoutX="215.0" layoutY="14.0" pickOnBounds="true"
+                       preserveRatio="true">
+                <image>
+                    <Image url="@/start.png"/>
+                </image>
+            </ImageView>
+        </children>
+    </Pane>
+    <VBox fx:id="cloudStoragePanel" managed="false" visible="false" VBox.vgrow="ALWAYS">
+        <MenuBar>
+            <Menu text="Файл">
+                <MenuItem onAction="#btnExitAction" text="Выйти из программы"/>
+            </Menu>
+        </MenuBar>
+        <HBox VBox.vgrow="ALWAYS">
+            <VBox HBox.hgrow="ALWAYS">
+                <ComboBox fx:id="disksBoxClient" onAction="#selectDiskAction"/>
+                <TextField fx:id="pathFieldClient" editable="false" HBox.hgrow="ALWAYS"/>
+                <Button onAction="#btnUpClientSide" text="Вверх"/>
+                <TableView fx:id="filesClientTable" VBox.vgrow="ALWAYS"/>
+            </VBox>
+            <VBox HBox.hgrow="ALWAYS">
+                <HBox>
+                    <Button onAction="#btnNewDir" text="Создать папку"/>
+                    <TextField fx:id="newDirField" promptText="Введите имя новой папки" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <TextField fx:id="pathFieldServer" editable="false" HBox.hgrow="ALWAYS"/>
+                <Button onAction="#btnUpServerSide" text="Вверх"/>
+                <TableView fx:id="filesServerTable" VBox.vgrow="ALWAYS"/>
+            </VBox>
+        </HBox>
+        <HBox spacing="5">
+            <Button focusTraversable="false" maxWidth="Infinity" onAction="#copyBtn" text="Копировать файл"
+                    HBox.hgrow="ALWAYS"/>
+            <Button focusTraversable="false" maxWidth="Infinity" onAction="#moveBtn" text="Переместить файл"
+                    HBox.hgrow="ALWAYS"/>
+            <Button focusTraversable="false" maxWidth="Infinity" onAction="#btnDelete" text="Удалить файл"
+                    HBox.hgrow="ALWAYS"/>
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </padding>
+            <VBox.margin>
+                <Insets/>
+            </VBox.margin>
+        </HBox>
+    </VBox>
+</VBox>
