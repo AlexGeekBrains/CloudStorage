@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="CENTER" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ru.alex.java.cloudstorage.client.RegController">
+    <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="337.0"
+          prefWidth="520.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1">
+        <children>
+            <Label layoutX="56.0" layoutY="120.0" prefHeight="17.0" prefWidth="87.0" text="Введите логин"/>
+            <Label layoutX="52.0" layoutY="196.0" text="Введите пароль"/>
+            <TextField fx:id="loginReg" layoutX="178.0" layoutY="116.0" prefHeight="25.0" prefWidth="216.0"/>
+            <PasswordField fx:id="passReg" layoutX="178.0" layoutY="192.0" prefHeight="25.0" prefWidth="216.0"/>
+            <Button layoutX="219.0" layoutY="245.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="135.0"
+                    text="Зарегистрироваться" onAction="#regBtn"/>
+            <Label alignment="CENTER" contentDisplay="TOP" layoutX="173.0" layoutY="43.0" prefHeight="31.0"
+                   prefWidth="224.0" text="Регистрация нового пользователя" textAlignment="CENTER">
+                <opaqueInsets>
+                    <Insets/>
+                </opaqueInsets>
+                <font>
+                    <Font name="System Bold" size="13.0"/>
+                </font>
+            </Label>
+        </children>
+    </Pane>
+</VBox>
