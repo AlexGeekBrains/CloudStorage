@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ru.alex.java.cloudstorage.common.MoveRequest.CommandType.*;
 
@@ -24,8 +25,8 @@ public class MoveHandler extends ChannelInboundHandlerAdapter {
     private static final int MB_19 = 19 * 1_000_000;
     private final static Path ROOT = Paths.get("serverCloudStorage/directoryServer");
 
-    public MoveHandler() {
-        serviceDb = new SqliteServiceDb();
+    public MoveHandler(ServiceDb serviceDb) {
+        this.serviceDb = serviceDb;
     }
 
     @Override
@@ -40,7 +41,8 @@ public class MoveHandler extends ChannelInboundHandlerAdapter {
                         response.setClientPath(request.getClientPath());
                         response.setFileName(request.getFileName());
                         response.setServerPath(request.getServerPath());
-                        updateFileInfoList(response, getFullNamePath(request.getServerPath()));
+                        response.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
+                        response.setFreeSpaseStorage(getFreeSpace(request));
                         ctx.writeAndFlush(response);
                     } else {
                         MoveResponse response = new MoveResponse(MoveResponse.CommandType.NO_MOVE_FILE_FROM_CLIENT);
@@ -57,7 +59,8 @@ public class MoveHandler extends ChannelInboundHandlerAdapter {
                         response.setServerPath(request.getServerPath());
                         response.setData(Files.readAllBytes(movePath));
                         Files.delete(movePath);
-                        updateFileInfoList(response, getFullNamePath(request.getServerPath()));
+                        response.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
+                        response.setFreeSpaseStorage(getFreeSpace(request));
                         ctx.writeAndFlush(response);
                     } else {
                         moveBigFile(ctx, request, movePath);
@@ -75,7 +78,8 @@ public class MoveHandler extends ChannelInboundHandlerAdapter {
                             moveResponse.setClientPath(request.getClientPath());
                             moveResponse.setServerPath(request.getServerPath());
                             moveResponse.setFileName(request.getFileName());
-                            updateFileInfoList(moveResponse, getFullNamePath(request.getServerPath()));
+                            moveResponse.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
+                            moveResponse.setFreeSpaseStorage(getFreeSpace(request));
                             ctx.writeAndFlush(moveResponse);
                         } else {
                             Files.delete(file.toPath());
@@ -95,11 +99,11 @@ public class MoveHandler extends ChannelInboundHandlerAdapter {
         cause.printStackTrace();
     }
 
-    private void updateFileInfoList(MoveResponse response, String pathServerList) throws IOException {
-        List<FileInfo> serverList = Files.list(Path.of(pathServerList))
-                .map(FileInfo::new)
-                .collect(Collectors.toList());
-        response.setFileInfoList(serverList);
+    private List<FileInfo> enrichFileInfoList(String pathServerList) throws IOException {
+        try (Stream<Path> list = Files.list(Path.of(pathServerList))) {
+            return list.map(FileInfo::new)
+                    .collect(Collectors.toList());
+        }
     }
 
     public String getFullNamePath(String pathFromServer) {
@@ -148,7 +152,7 @@ public class MoveHandler extends ChannelInboundHandlerAdapter {
                 moveResponse.setServerPath(request.getServerPath());
                 moveResponse.setFileName(request.getFileName());
                 Files.delete(movePath);
-                updateFileInfoList(moveResponse, getFullNamePath(request.getServerPath()));
+                moveResponse.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
                 ctx.writeAndFlush(moveResponse);
             } else {
                 moveResponse.setData(listData.get(i));
@@ -158,8 +162,14 @@ public class MoveHandler extends ChannelInboundHandlerAdapter {
             }
         }
     }
+
     public boolean checkFreeSpace(MoveRequest request) {
         long diskSpaceUsed = FileUtils.sizeOfDirectory(new File(getFullNamePath(request.getLogin())));
         return diskSpaceUsed + request.getFileSize() < serviceDb.getDiskQuota(request.getLogin());
+    }
+
+    public String getFreeSpace(MoveRequest request) {
+        long diskSpaceUsed = FileUtils.sizeOfDirectory(new File(getFullNamePath(request.getLogin())));
+        return String.valueOf((serviceDb.getDiskQuota(request.getLogin()) - diskSpaceUsed) / 1048576).concat(" MB");
     }
 }

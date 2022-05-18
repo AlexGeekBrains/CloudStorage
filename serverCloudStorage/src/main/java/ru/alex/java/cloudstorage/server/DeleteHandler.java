@@ -14,13 +14,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DeleteHandler extends ChannelInboundHandlerAdapter {
     private ServiceDb serviceDb;
     private final static Path ROOT = Paths.get("serverCloudStorage/directoryServer");
 
-    public DeleteHandler() {
-        serviceDb = new SqliteServiceDb();
+    public DeleteHandler(ServiceDb serviceDb) {
+        this.serviceDb = serviceDb;
     }
 
     @Override
@@ -32,16 +33,18 @@ public class DeleteHandler extends ChannelInboundHandlerAdapter {
                 Path deletePath = Paths.get(getFullNamePath(request.getServerPath()), request.getFileName());
                 if (Files.isDirectory(deletePath)) {
                     FileUtils.deleteDirectory(new File(deletePath.toString()));
-                    updateFileInfoList(response, getFullNamePath(request.getServerPath()));
+                    response.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
                     response.setCommand(DeleteResponse.CommandType.DELETE_OK);
                     response.setServerPath(request.getServerPath());
+                    response.setFreeSpaseStorage(getFreeSpace(request));
                     ctx.writeAndFlush(response);
                 } else {
                     try {
-                        Files.delete(deletePath);
-                        updateFileInfoList(response, getFullNamePath(request.getServerPath()));
+                        Files.deleteIfExists(deletePath);
+                        response.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
                         response.setCommand(DeleteResponse.CommandType.DELETE_OK);
                         response.setServerPath(request.getServerPath());
+                        response.setFreeSpaseStorage(getFreeSpace(request));
                         ctx.writeAndFlush(response);
                     } catch (IOException e) {
                         response.setCommand(DeleteResponse.CommandType.DELETE_NO);
@@ -59,14 +62,19 @@ public class DeleteHandler extends ChannelInboundHandlerAdapter {
         cause.printStackTrace();
     }
 
-    private void updateFileInfoList(DeleteResponse response, String pathServerList) throws IOException {
-        List<FileInfo> serverList = Files.list(Path.of(pathServerList))
-                .map(FileInfo::new)
-                .collect(Collectors.toList());
-        response.setFileInfoList(serverList);
+    private List<FileInfo> enrichFileInfoList(String pathServerList) throws IOException {
+        try (Stream<Path> list = Files.list(Path.of(pathServerList))) {
+            return list.map(FileInfo::new)
+                    .collect(Collectors.toList());
+        }
     }
 
     public String getFullNamePath(String pathFromServer) {
         return ROOT.resolve(pathFromServer).toString();
+    }
+
+    public String getFreeSpace(DeleteRequest request) {
+        long diskSpaceUsed = FileUtils.sizeOfDirectory(new File(getFullNamePath(request.getLogin())));
+        return String.valueOf((serviceDb.getDiskQuota(request.getLogin()) - diskSpaceUsed) / 1048576).concat(" MB");
     }
 }

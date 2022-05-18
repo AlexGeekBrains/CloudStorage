@@ -44,29 +44,27 @@ public class CloudStorageController implements Initializable {
     private String password;
     private static final int MB_19 = 19 * 1_000_000;
     @FXML
-    public TextField newDirField;
+    private TextField freeSpaseField;
     @FXML
-    public TableView<FileInfo> filesClientTable;
+    private TextField newDirField;
     @FXML
-    public TableView<FileInfo> filesServerTable;
+    private TableView<FileInfo> filesClientTable;
     @FXML
-    public TextField pathFieldServer;
+    private TableView<FileInfo> filesServerTable;
     @FXML
-    public Pane regPanel;
+    private TextField pathFieldServer;
     @FXML
-    public TextField authLogin;
+    private Pane regPanel;
     @FXML
-    public PasswordField authPass;
+    private TextField authLogin;
     @FXML
-    ComboBox<String> disksBoxClient;
+    private PasswordField authPass;
     @FXML
-    TextField pathFieldClient;
+    private ComboBox<String> disksBoxClient;
     @FXML
-    VBox cloudStoragePanel;
-
-    public Stage getRegStage() {
-        return regStage;
-    }
+    private TextField pathFieldClient;
+    @FXML
+    private VBox cloudStoragePanel;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -74,7 +72,9 @@ public class CloudStorageController implements Initializable {
         Platform.runLater(() -> {
             stage = (Stage) pathFieldClient.getScene().getWindow();
             stage.setOnCloseRequest(event -> {
+                EndWorkRequest request = new EndWorkRequest(login, password);
                 System.out.println("bye");
+                network.msg(request);
             });
         });
         createClientSideColumn();
@@ -161,7 +161,9 @@ public class CloudStorageController implements Initializable {
         filesServerTable.getSortOrder().add(fileTypeColumn);
     }
 
-    public void btnExitAction(ActionEvent actionEvent) {  // выход из программы по нажатию кнопки выход
+    public void btnExitAction(ActionEvent actionEvent) {
+        EndWorkRequest request = new EndWorkRequest(login, password);
+        network.msg(request);
         Platform.exit();
     }
 
@@ -350,11 +352,11 @@ public class CloudStorageController implements Initializable {
         return filesServerTable.getSelectionModel().getSelectedItem().getType();
     }
 
-    public String getCurrentPathClientSide() {   // текущий путь на клиентской стороне
+    public String getCurrentPathClientSide() {
         return pathFieldClient.getText();
     }
 
-    public String getCurrentPathServerSide() {   // текущий путь на серверной стороне
+    public String getCurrentPathServerSide() {
         return pathFieldServer.getText();
     }
 
@@ -647,5 +649,9 @@ public class CloudStorageController implements Initializable {
             newDirField.setText("");
             network.msg(createDirRequest);
         }
+    }
+
+    public void setFreeSpaseField(String freeSpaseField) {
+        this.freeSpaseField.setText(freeSpaseField);
     }
 }

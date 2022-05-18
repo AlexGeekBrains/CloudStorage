@@ -13,8 +13,8 @@ public class RegHandler extends ChannelInboundHandlerAdapter {
     private ServiceDb serviceDb;
     private final static Path ROOT = Paths.get("serverCloudStorage/directoryServer");
 
-    public RegHandler() {
-        serviceDb = new SqliteServiceDb();
+    public RegHandler(ServiceDb serviceDb) {
+        this.serviceDb=serviceDb;
     }
 
     @Override

@@ -24,4 +24,5 @@ public class CreateDirResponse implements Serializable {
     private String serverPath;
     private CreateDirResponse.CommandType command;
     private List<FileInfo> fileInfoList;
+    private String freeSpaseStorage;
 }

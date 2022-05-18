@@ -18,9 +18,11 @@ public class Server {
     private static final int PORT = 45001;
     private static final String HOST = "localhost";
     private static final int MB_20 = 20 * 1_000_000;
+    private static ServiceDb serviceDb;
 
     public static void main(String[] args) throws InterruptedException {
         try {
+            serviceDb = new SqliteServiceDb();
             DataSource.connect();
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -38,13 +40,14 @@ public class Server {
                             inbound.addLast(
                                     new ObjectEncoder(),
                                     new ObjectDecoder(MB_20, ClassResolvers.cacheDisabled(null)),
-                                    new RegHandler(),
-                                    new AuthHandler(),
-                                    new DeleteHandler(),
-                                    new TransitionPathHandler(),
-                                    new CopyHandler(),
-                                    new CreateDirHandler(),
-                                    new MoveHandler()
+                                    new RegHandler(serviceDb),
+                                    new AuthHandler(serviceDb),
+                                    new DeleteHandler(serviceDb),
+                                    new TransitionPathHandler(serviceDb),
+                                    new CopyHandler(serviceDb),
+                                    new CreateDirHandler(serviceDb),
+                                    new MoveHandler(serviceDb),
+                                    new EndWorkHandler(serviceDb)
                             );
                         }
                     });

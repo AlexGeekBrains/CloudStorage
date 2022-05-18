@@ -23,6 +23,7 @@ public class AuthResponse implements Serializable {
 
     private String login;
     private String serverPath;
+    private String freeSpaseStorage;
     private AuthResponse.CommandType command;
     private List<FileInfo> fileInfoList;
 }

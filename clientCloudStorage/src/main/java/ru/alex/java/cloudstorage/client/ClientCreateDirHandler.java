@@ -21,6 +21,7 @@ public class ClientCreateDirHandler extends ChannelInboundHandlerAdapter {
             CreateDirResponse serverAnswer = (CreateDirResponse) msg;
             if (CREATE_DIR_OK.equals(serverAnswer.getCommand())) {
                 Platform.runLater(() -> {
+                    controller.setFreeSpaseField(serverAnswer.getFreeSpaseStorage());
                     controller.updateServerList(serverAnswer.getServerPath(), serverAnswer.getFileInfoList());
                 });
             }

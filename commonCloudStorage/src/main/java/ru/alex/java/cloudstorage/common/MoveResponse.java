@@ -29,6 +29,7 @@ public class MoveResponse implements Serializable {
     private String fileName;
     private CommandType command;
     private List<FileInfo> fileInfoList;
+    private String freeSpaseStorage;
     private boolean isFirstPartFile;
     private boolean isLastPartFile;
     private byte[] data;

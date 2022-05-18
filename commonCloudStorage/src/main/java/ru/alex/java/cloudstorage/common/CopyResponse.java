@@ -30,6 +30,7 @@ public class CopyResponse implements Serializable {
     private String fileName;
     private CopyResponse.CommandType command;
     private List<FileInfo> fileInfoList;
+    private String freeSpaseStorage;
     private boolean isFirstPartFile;
     private boolean isLastPartFile;
     private byte[] data;

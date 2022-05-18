@@ -26,6 +26,7 @@ public class ClientCopyHandler extends ChannelInboundHandlerAdapter {
             CopyResponse serverAnswer = (CopyResponse) msg;
             if (COPY_FILE_FROM_CLIENT.equals(serverAnswer.getCommand()) || COPY_BIG_FILE_FROM_CLIENT.equals(serverAnswer.getCommand())) {
                 Platform.runLater(() -> {
+                    controller.setFreeSpaseField(serverAnswer.getFreeSpaseStorage());
                     controller.updateServerList(serverAnswer.getServerPath(), serverAnswer.getFileInfoList());
                 });
             }
@@ -33,6 +34,7 @@ public class ClientCopyHandler extends ChannelInboundHandlerAdapter {
                 Platform.runLater(() -> {
                     try {
                         Files.delete(Path.of(serverAnswer.getClientPath(), serverAnswer.getFileName() + "forCopy.zip"));
+                        controller.setFreeSpaseField(serverAnswer.getFreeSpaseStorage());
                         controller.updateServerList(serverAnswer.getServerPath(), serverAnswer.getFileInfoList());
                     } catch (IOException e) {
                         throw new RuntimeException(e);

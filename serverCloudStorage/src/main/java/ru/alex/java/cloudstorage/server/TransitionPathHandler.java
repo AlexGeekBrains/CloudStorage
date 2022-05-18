@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ru.alex.java.cloudstorage.common.TransitionRequest.CommandType.NEXT_PATH;
 import static ru.alex.java.cloudstorage.common.TransitionRequest.CommandType.UP_PATH;
@@ -20,8 +21,8 @@ public class TransitionPathHandler extends ChannelInboundHandlerAdapter {
     private ServiceDb serviceDb;
     private final static Path ROOT = Paths.get("serverCloudStorage/directoryServer");
 
-    public TransitionPathHandler() {
-        serviceDb = new SqliteServiceDb();
+    public TransitionPathHandler(ServiceDb serviceDb) {
+        this.serviceDb=serviceDb;
     }
 
     @Override
@@ -31,13 +32,13 @@ public class TransitionPathHandler extends ChannelInboundHandlerAdapter {
             TransitionResponse response = new TransitionResponse();
             if (NEXT_PATH.equals(request.getCommand())) {
                 if (serviceDb.isAuthentication(request.getLogin(), request.getPassword())) {
-                    updateFileInfoList(response, getFullNamePath(request.getServerPath()));
+                    response.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
                     response.setServerPath(request.getServerPath());
                     ctx.writeAndFlush(response);
                 }
             } else if (UP_PATH.equals(request.getCommand())) {
                 if (serviceDb.isAuthentication(request.getLogin(), request.getPassword())) {
-                    updateFileInfoList(response, getFullNamePath(request.getServerPath()));
+                    response.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
                     response.setServerPath(request.getServerPath());
                     ctx.writeAndFlush(response);
                 }
@@ -52,11 +53,11 @@ public class TransitionPathHandler extends ChannelInboundHandlerAdapter {
         cause.printStackTrace();
     }
 
-    private void updateFileInfoList(TransitionResponse response, String pathServerList) throws IOException {
-        List<FileInfo> serverList = Files.list(Path.of(pathServerList))
-                .map(FileInfo::new)
-                .collect(Collectors.toList());
-        response.setFileInfoList(serverList);
+    private List<FileInfo> enrichFileInfoList(String pathServerList) throws IOException {
+        try (Stream<Path> list = Files.list(Path.of(pathServerList))){
+            return  list.map(FileInfo::new)
+                    .collect(Collectors.toList());
+        }
     }
 
     public String getFullNamePath(String pathFromServer) {

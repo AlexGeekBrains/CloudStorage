@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -28,8 +29,8 @@ public class CopyHandler extends ChannelInboundHandlerAdapter {
     private static final int MB_19 = 19 * 1_000_000;
     private final static Path ROOT = Paths.get("serverCloudStorage/directoryServer");
 
-    public CopyHandler() {
-        serviceDb = new SqliteServiceDb();
+    public CopyHandler(ServiceDb serviceDb) {
+        this.serviceDb=serviceDb;
     }
 
     @Override
@@ -42,7 +43,8 @@ public class CopyHandler extends ChannelInboundHandlerAdapter {
                         FileUtils.writeByteArrayToFile(new File(getFullNamePathWithFileName(request.getServerPath(), request.getFileName())), request.getData());
                         CopyResponse response = new CopyResponse(CopyResponse.CommandType.COPY_FILE_FROM_CLIENT);
                         response.setServerPath(request.getServerPath());
-                        updateFileInfoList(response, getFullNamePath(request.getServerPath()));
+                        response.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
+                        response.setFreeSpaseStorage(getFreeSpace(request));
                         ctx.writeAndFlush(response);
                     } else {
                         CopyResponse response = new CopyResponse(CopyResponse.CommandType.NO_COPY_FROM_CLIENT);
@@ -72,7 +74,8 @@ public class CopyHandler extends ChannelInboundHandlerAdapter {
                             FileUtils.writeByteArrayToFile(file, request.getData(), true);
                             CopyResponse copyResponse = new CopyResponse(CopyResponse.CommandType.COPY_BIG_FILE_FROM_CLIENT);
                             copyResponse.setServerPath(request.getServerPath());
-                            updateFileInfoList(copyResponse, getFullNamePath(request.getServerPath()));
+                            copyResponse.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
+                            copyResponse.setFreeSpaseStorage(getFreeSpace(request));
                             ctx.writeAndFlush(copyResponse);
                         } else {
                             Files.delete(file.toPath());
@@ -126,7 +129,8 @@ public class CopyHandler extends ChannelInboundHandlerAdapter {
         copyResponse.setServerPath(request.getServerPath());
         copyResponse.setFileName(request.getFileName());
         copyResponse.setClientPath(request.getClientPath());
-        updateFileInfoList(copyResponse, getFullNamePath(request.getServerPath()));
+        copyResponse.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
+        copyResponse.setFreeSpaseStorage(getFreeSpace(request));
         ctx.writeAndFlush(copyResponse);
     }
 
@@ -135,11 +139,11 @@ public class CopyHandler extends ChannelInboundHandlerAdapter {
         cause.printStackTrace();
     }
 
-    private void updateFileInfoList(CopyResponse response, String pathServerList) throws IOException {
-        List<FileInfo> serverList = Files.list(Path.of(pathServerList))
-                .map(FileInfo::new)
-                .collect(Collectors.toList());
-        response.setFileInfoList(serverList);
+    private List<FileInfo> enrichFileInfoList(String pathServerList) throws IOException {
+        try (Stream<Path> list = Files.list(Path.of(pathServerList))) {
+            return list.map(FileInfo::new)
+                    .collect(Collectors.toList());
+        }
     }
 
     public String getFullNamePath(String pathFromServer) {
@@ -220,5 +224,9 @@ public class CopyHandler extends ChannelInboundHandlerAdapter {
     public boolean checkFreeSpace(CopyRequest request) {
         long diskSpaceUsed = FileUtils.sizeOfDirectory(new File(getFullNamePath(request.getLogin())));
         return diskSpaceUsed + request.getFileSize() < serviceDb.getDiskQuota(request.getLogin());
+    }
+    public String getFreeSpace(CopyRequest request) {
+        long diskSpaceUsed = FileUtils.sizeOfDirectory(new File(getFullNamePath(request.getLogin())));
+        return String.valueOf((serviceDb.getDiskQuota(request.getLogin())-diskSpaceUsed)/1048576).concat(" MB");
     }
 }

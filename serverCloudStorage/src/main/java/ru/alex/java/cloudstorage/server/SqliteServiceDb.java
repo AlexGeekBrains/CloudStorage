@@ -11,7 +11,7 @@ import java.sql.SQLException;
 
 public class SqliteServiceDb implements ServiceDb {
 private final int MAX_NESTING = 5;
-private final Long MAX_DISK_QUOTA= 1104857600L;
+private final Long MAX_DISK_QUOTA= 1048576000L;
 
     @Override
     public Integer getMaxNesting(String login) {

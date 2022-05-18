@@ -2,23 +2,26 @@ package ru.alex.java.cloudstorage.server;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.apache.commons.io.FileUtils;
 import ru.alex.java.cloudstorage.common.CreateDirRequest;
 import ru.alex.java.cloudstorage.common.CreateDirResponse;
 import ru.alex.java.cloudstorage.common.FileInfo;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CreateDirHandler extends ChannelInboundHandlerAdapter {
     private ServiceDb serviceDb;
     private final static Path ROOT = Paths.get("serverCloudStorage/directoryServer");
 
-    public CreateDirHandler() {
-        serviceDb = new SqliteServiceDb();
+    public CreateDirHandler(ServiceDb serviceDb) {
+        this.serviceDb=serviceDb;
     }
 
     @Override
@@ -30,8 +33,9 @@ public class CreateDirHandler extends ChannelInboundHandlerAdapter {
                 Files.createDirectory(getPathNewDir(request));
                 if (getNesting(request) <= serviceDb.getMaxNesting(request.getLogin())) {
                     response.setCommand(CreateDirResponse.CommandType.CREATE_DIR_OK);
-                    updateFileInfoList(response, getFullNamePath(request.getServerPath()));
+                    response.setFileInfoList(enrichFileInfoList(getFullNamePath(request.getServerPath())));
                     response.setServerPath(request.getServerPath());
+                    response.setFreeSpaseStorage(getFreeSpace(request));
                     ctx.writeAndFlush(response);
                 } else {
                     Files.deleteIfExists(getPathNewDir(request));
@@ -50,8 +54,7 @@ public class CreateDirHandler extends ChannelInboundHandlerAdapter {
     }
 
     private Path getPathNewDir(CreateDirRequest request) {
-        Path newDir;
-        return newDir = Path.of(getFullNamePath(request.getServerPath().concat("/").concat(request.getDirName())));
+        return Path.of(getFullNamePath(request.getServerPath().concat("/").concat(request.getDirName())));
     }
 
     @Override
@@ -63,10 +66,14 @@ public class CreateDirHandler extends ChannelInboundHandlerAdapter {
         return ROOT.resolve(pathFromServer).toString();
     }
 
-    private void updateFileInfoList(CreateDirResponse response, String pathServerList) throws IOException {
-        List<FileInfo> serverList = Files.list(Path.of(pathServerList))
-                .map(FileInfo::new)
-                .collect(Collectors.toList());
-        response.setFileInfoList(serverList);
+    private List<FileInfo> enrichFileInfoList(String pathServerList) throws IOException {
+        try (Stream<Path> list = Files.list(Path.of(pathServerList))) {
+            return list.map(FileInfo::new)
+                    .collect(Collectors.toList());
+        }
+    }
+    public String getFreeSpace(CreateDirRequest request) {
+        long diskSpaceUsed = FileUtils.sizeOfDirectory(new File(getFullNamePath(request.getLogin())));
+        return String.valueOf((serviceDb.getDiskQuota(request.getLogin())-diskSpaceUsed)/1048576).concat(" MB");
     }
 }

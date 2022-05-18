@@ -22,6 +22,7 @@ public class ClientAuthHandler extends ChannelInboundHandlerAdapter {
             if (AUTH_OK.equals(serverAnswer.getCommand())) {
                 Platform.runLater(() -> {
                     controller.showWorkArea();
+                    controller.setFreeSpaseField(serverAnswer.getFreeSpaseStorage());
                     controller.updateServerList(serverAnswer.getServerPath(), serverAnswer.getFileInfoList());
                     controller.setTitle(serverAnswer.getLogin());
                 });

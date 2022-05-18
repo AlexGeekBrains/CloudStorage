@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
@@ -24,7 +25,7 @@
             </ImageView>
         </children>
     </Pane>
-    <VBox fx:id="cloudStoragePanel" managed="false" visible="false" VBox.vgrow="ALWAYS">
+    <VBox managed="false" visible="false" fx:id="cloudStoragePanel" VBox.vgrow="ALWAYS">
         <MenuBar>
             <Menu text="Файл">
                 <MenuItem onAction="#btnExitAction" text="Выйти из программы"/>
@@ -43,7 +44,12 @@
                     <TextField fx:id="newDirField" promptText="Введите имя новой папки" HBox.hgrow="ALWAYS"/>
                 </HBox>
                 <TextField fx:id="pathFieldServer" editable="false" HBox.hgrow="ALWAYS"/>
-                <Button onAction="#btnUpServerSide" text="Вверх"/>
+                <HBox>
+                    <Button onAction="#btnUpServerSide" text="Вверх"/>
+                    <Label alignment="CENTER" prefHeight="24.0" prefWidth="155.0" text="Свободно места на диске"/>
+                    <TextField fx:id="freeSpaseField" editable="false" prefHeight="25.0" prefWidth="82.0"
+                               HBox.hgrow="ALWAYS"/>
+                </HBox>
                 <TableView fx:id="filesServerTable" VBox.vgrow="ALWAYS"/>
             </VBox>
         </HBox>

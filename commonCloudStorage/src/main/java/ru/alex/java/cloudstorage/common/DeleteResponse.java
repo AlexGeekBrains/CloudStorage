@@ -24,4 +24,5 @@ public class DeleteResponse implements Serializable {
     private DeleteResponse.CommandType command;
     private List<FileInfo> fileInfoList;
     private String serverPath;
+    private String freeSpaseStorage;
 }

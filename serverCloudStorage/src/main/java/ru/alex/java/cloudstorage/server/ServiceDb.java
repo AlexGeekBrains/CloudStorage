@@ -8,15 +8,15 @@ public interface ServiceDb {
      */
     String getLoginByLoginAndPassword(String nickname, String password);
 
+    Long getDiskQuota(String Login);
+
+    Integer getMaxNesting(String login);
+
     /**
      * Регистрация нового пользователя
      * при успешной регистрации (логин и никнейм не заняты) вернет true
      * иначе вернет false
      */
-    Long getDiskQuota(String Login);
-
-    Integer getMaxNesting(String login);
-
     boolean isRegistration(String nickname, String password);
 
     /**

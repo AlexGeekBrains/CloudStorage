@@ -21,6 +21,7 @@ public class ClientDeleteHandler extends ChannelInboundHandlerAdapter {
             DeleteResponse serverAnswer = (DeleteResponse) msg;
             if (DELETE_OK.equals(serverAnswer.getCommand())) {
                 Platform.runLater(() -> {
+                    controller.setFreeSpaseField(serverAnswer.getFreeSpaseStorage());
                     controller.updateServerList(serverAnswer.getServerPath(), serverAnswer.getFileInfoList());
                 });
             }
