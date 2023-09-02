@@ -18,9 +18,10 @@ private final Long MAX_DISK_QUOTA= 1048576000L;
         try (PreparedStatement psMaxNesting = DataSource.getConnectionDb()
                 .prepareStatement("Select maxNesting from settingsDb WHERE id_client = (Select id from clients WHERE nickname = ?);")) {
             psMaxNesting.setString(1, login);
-            ResultSet rs = psMaxNesting.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("maxNesting");
+            try (ResultSet rs = psMaxNesting.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("maxNesting");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -33,9 +34,10 @@ private final Long MAX_DISK_QUOTA= 1048576000L;
         try (PreparedStatement psDiskQuota = DataSource.getConnectionDb()
                 .prepareStatement("SELECT diskQuota from settingsDb WHERE id_client = (Select id from clients WHERE nickname = ?);")) {
             psDiskQuota.setString(1, login);
-            ResultSet rs = psDiskQuota.executeQuery();
-            if (rs.next()) {
-                return rs.getLong("diskQuota");
+            try (ResultSet rs = psDiskQuota.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("diskQuota");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -48,9 +50,10 @@ private final Long MAX_DISK_QUOTA= 1048576000L;
         try (PreparedStatement psLogin = DataSource.getConnectionDb().prepareStatement("SELECT nickname FROM clients WHERE nickname =? AND password = ?;")) {
             psLogin.setString(1, nickname);
             psLogin.setString(2, getCrypto(password));
-            ResultSet rs = psLogin.executeQuery();
-            if (rs.next()) {
-                return rs.getString("nickname");
+            try (ResultSet rs = psLogin.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("nickname");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -65,9 +68,10 @@ private final Long MAX_DISK_QUOTA= 1048576000L;
         try (PreparedStatement psLogin = DataSource.getConnectionDb().prepareStatement("SELECT nickname FROM clients WHERE nickname =? AND password = ?;")) {
             psLogin.setString(1, nickname);
             psLogin.setString(2, getCrypto(password));
-            ResultSet rs = psLogin.executeQuery();
-            if (rs.next()) {
-                return true;
+            try (ResultSet rs = psLogin.executeQuery()) {
+                if (rs.next()) {
+                    return true;
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -36,7 +36,7 @@ import java.util.zip.ZipOutputStream;
 
 public class CloudStorageController implements Initializable {
     private ClientNetwork network;
-    private final static String ROOT = "clientCloudStorage/directoryClient";
+    private final static String ROOT = "clientCloudStorage";
     private Stage stage;
     private Stage regStage;
     private RegController regController;
@@ -384,7 +384,7 @@ public class CloudStorageController implements Initializable {
                         this.updateClientList(Paths.get(this.getCurrentPathClientSide()));
                     } catch (IOException e) {
                         Alert alertFailureDelete = new Alert(Alert.AlertType.ERROR, "Не удалось удалить указанный файл", ButtonType.OK);
-                        alert.showAndWait();
+                        alertFailureDelete.showAndWait();
                     }
                 }
             }
@@ -497,19 +497,19 @@ public class CloudStorageController implements Initializable {
     private void copyBigFile(Path copyPath) throws IOException {
         byte[] data = Files.readAllBytes(copyPath);
         List<byte[]> listData = new ArrayList<>();
-        int len = MB_19;
+        int chunkSize = MB_19;
         if (data.length > MB_19) {
             int count = (int) Math.ceil((double) data.length / MB_19);
             int fin = (data.length % MB_19);
             int start_position = 0;
-            int end_position = len;
+            int end_position = chunkSize;
             for (int i = 0; i < count; i++) {
                 listData.add(Arrays.copyOfRange(data, start_position, end_position));
-                start_position += len;
+                start_position += chunkSize;
                 if (i == count - 2) {
                     end_position = start_position + fin;
                 } else {
-                    end_position = start_position + len;
+                    end_position = start_position + chunkSize;
                 }
             }
         }
